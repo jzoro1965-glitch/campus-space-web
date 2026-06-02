@@ -32,4 +32,12 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Relasi: 1 User (mahasiswa) bisa punya banyak riwayat booking
+     */
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
 }

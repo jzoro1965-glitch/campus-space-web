@@ -11,27 +11,20 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // 1. Ambil semua data meja untuk ditampilkan di grid web admin
+        // 1. Ambil seluruh data Desk
         $desks = Desk::all();
+        
+        // 2. Ambil data Booking hari ini yang di-load bersama relasi 'user' dan 'desk'
         $today = now()->format('Y-m-d');
+        $bookings = Booking::with(['user', 'desk'])
+            ->where('booking_date', $today)
+            ->where('status', 'approved')
+            ->get();
 
-        // 2. bla status meja khusus untuk tampilan Frontend Blade
-        $deskStatus = $desks->map(function ($desk) use ($today) {
-            $isBooked = Booking::where('desk_id', $desk->id)
-                ->where('booking_date', $today)
-                ->where('status', 'approved')
-                ->exists();
-
-            return [
-                'id' => $desk->id,
-                'code' => $desk->code,
-                'location' => $desk->location,
-                'status' => $isBooked ? 'Terisi' : 'Kosong',
-                'bg_color' => $isBooked ? 'bg-amber-500' : 'bg-emerald-500', // Warna Tailwind untuk UI
-            ];
-        });
-
-        // 3. Lempar data ke file frontend views/admin/dashboard.blade.php
-        return view('admin.dashboard', compact('deskStatus'));
+        // 3. Kirim kedua kumpulan data ke view admin.dashboard
+        return view('admin.dashboard', [
+            'desks' => $desks,
+            'activeBookings' => $bookings
+        ]);
     }
 }

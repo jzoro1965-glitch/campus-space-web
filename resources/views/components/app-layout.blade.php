@@ -49,6 +49,13 @@
                     Semua Booking
                 </a>
 
+                <a href="{{ route('admin.users.index') }}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors
+                          {{ request()->routeIs('admin.users.*') ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-800' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    Kelola User
+                </a>
+
             @elseif($role === 'mahasiswa')
                 <p class="text-[10px] uppercase tracking-widest text-indigo-500 font-semibold mb-3 px-2">Menu</p>
 

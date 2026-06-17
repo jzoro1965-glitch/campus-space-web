@@ -1,188 +1,195 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <h2 class="font-bold text-2xl text-gray-800 leading-tight tracking-tight">
-                {{ __('Dashboard Monitoring Study Space') }}
-            </h2>
-            <span class="px-3 py-1 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-full flex items-center gap-1.5 shadow-sm">
-                <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+            <div>
+                <h2 class="text-xl font-bold text-gray-800">Dashboard Monitoring</h2>
+                <p class="text-xs text-gray-400 mt-0.5">{{ now()->translatedFormat('l, d F Y') }} — Data diperbarui otomatis setiap 30 detik</p>
+            </div>
+            <span class="px-3 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 Sistem Live
             </span>
         </div>
     </x-slot>
 
-    <div class="py-12 bg-gray-50 min-h-screen">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
+    {{-- Auto-refresh setiap 30 detik --}}
+    <script>setTimeout(() => location.reload(), 30000);</script>
 
-            {{-- ====================================================== --}}
-            {{-- BAGIAN 1: KARTU STATISTIK                              --}}
-            {{-- ====================================================== --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="space-y-6">
 
-                {{-- Card: Total Meja --}}
-                <div class="p-6 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-center justify-between transition-all hover:shadow-md">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Meja</p>
-                        <h4 class="text-3xl font-extrabold text-gray-800 mt-1">{{ $desks->count() }}</h4>
-                    </div>
-                    <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                        </svg>
-                    </div>
-                </div>
+        {{-- ── KARTU STATISTIK ──────────────────────────────────────── --}}
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
-                {{-- Card: Booking Aktif Hari Ini --}}
-                <div class="p-6 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-center justify-between transition-all hover:shadow-md">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Booking Aktif Hari Ini</p>
-                        <h4 class="text-3xl font-extrabold text-red-600 mt-1">{{ $activeBookings->count() }}</h4>
-                    </div>
-                    <div class="p-3 bg-red-50 text-red-600 rounded-xl">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                        </svg>
-                    </div>
-                </div>
-
-                {{-- Card: Meja Tersedia --}}
-                <div class="p-6 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-center justify-between transition-all hover:shadow-md">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Meja Tersedia</p>
-                        <h4 class="text-3xl font-extrabold text-emerald-600 mt-1">{{ $desks->count() - $activeBookings->count() }}</h4>
-                    </div>
-                    <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                </div>
-
+            <div class="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Meja</p>
+                <h3 class="text-3xl font-extrabold text-gray-800 mt-1">{{ $desks->count() }}</h3>
+                <p class="text-xs text-blue-500 mt-1">Semua lantai</p>
             </div>
 
-            {{-- ====================================================== --}}
-            {{-- BAGIAN 2: DENAH VISUAL INTERAKTIF (GRID MEJA)          --}}
-            {{-- ====================================================== --}}
-            <div class="p-6 bg-white border border-gray-100 rounded-2xl shadow-sm">
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <h3 class="text-xl font-bold text-gray-800">Denah Visual Meja</h3>
-                        <p class="text-xs text-gray-400 mt-0.5">Status ketersediaan meja secara real-time hari ini</p>
-                    </div>
-                    <div class="flex items-center gap-4 text-xs font-medium">
-                        <span class="flex items-center gap-1.5 text-gray-600">
-                            <span class="w-3 h-3 rounded bg-emerald-500"></span> Kosong
-                        </span>
-                        <span class="flex items-center gap-1.5 text-gray-600">
-                            <span class="w-3 h-3 rounded bg-red-500"></span> Ter-Booking
-                        </span>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-                    @foreach($desks as $desk)
-                        @php
-                            // Cek apakah desk_id meja ini ada di dalam koleksi bookings hari ini
-                            $isBooked = $activeBookings->contains('desk_id', $desk->id);
-                        @endphp
-
-                        @if($isBooked)
-                            {{-- Kotak Merah: Status TER-BOOKING --}}
-                            <div class="relative group p-5 rounded-2xl border transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md bg-red-50 border-red-200 text-red-900 shadow-sm">
-                                <div class="absolute top-3 right-3">
-                                    <span class="flex h-2 w-2 relative">
-                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                                    </span>
-                                </div>
-                                <div class="text-xs uppercase font-semibold tracking-wider text-gray-400 mb-1">{{ $desk->location }}</div>
-                                <div class="text-xl font-black mb-2">{{ $desk->code }}</div>
-                                <div class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-200/60 text-red-800">
-                                    TER-BOOKING
-                                </div>
-                            </div>
-                        @else
-                            {{-- Kotak Hijau: Status KOSONG --}}
-                            <div class="relative group p-5 rounded-2xl border transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md bg-emerald-50 border-emerald-200 text-emerald-900 shadow-sm">
-                                <div class="absolute top-3 right-3">
-                                    <span class="flex h-2 w-2 relative">
-                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                    </span>
-                                </div>
-                                <div class="text-xs uppercase font-semibold tracking-wider text-gray-400 mb-1">{{ $desk->location }}</div>
-                                <div class="text-xl font-black mb-2">{{ $desk->code }}</div>
-                                <div class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-200/60 text-emerald-800">
-                                    KOSONG
-                                </div>
-                            </div>
-                        @endif
-                    @endforeach
-                </div>
+            <div class="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Booking Hari Ini</p>
+                <h3 class="text-3xl font-extrabold text-red-600 mt-1">{{ $activeBookings->count() }}</h3>
+                <p class="text-xs text-red-400 mt-1">Meja terpakai</p>
             </div>
 
-            {{-- ====================================================== --}}
-            {{-- BAGIAN 3: TABEL LOG BOOKING HARI INI                   --}}
-            {{-- ====================================================== --}}
-            <div class="p-6 bg-white border border-gray-100 rounded-2xl shadow-sm">
-                <div class="mb-6">
-                    <h3 class="text-xl font-bold text-gray-800">Log Aktivitas Booking</h3>
-                    <p class="text-xs text-gray-400 mt-0.5">Daftar mahasiswa yang aktif menempati meja hari ini — data realtime dari database</p>
-                </div>
-
-                <div class="overflow-hidden border border-gray-100 rounded-xl">
-                    <table class="min-w-full divide-y divide-gray-100 text-sm text-left">
-                        <thead class="text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-4">#</th>
-                                <th class="px-6 py-4">Nama Mahasiswa</th>
-                                <th class="px-6 py-4">NIM</th>
-                                <th class="px-6 py-4">Kode Meja</th>
-                                <th class="px-6 py-4">Sesi Jam Akses</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100 bg-white">
-                            @forelse($activeBookings as $index => $booking)
-                                <tr class="hover:bg-gray-50/50 transition-colors">
-                                    <td class="px-6 py-4 text-gray-400 font-mono text-xs">{{ $index + 1 }}</td>
-                                    <td class="px-6 py-4">
-                                        <div class="font-semibold text-gray-900">{{ $booking->user->name ?? 'User Tidak Ditemukan' }}</div>
-                                        <div class="text-xs text-gray-400">{{ $booking->user->email ?? '-' }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 font-mono text-gray-600">
-                                        {{ $booking->user->nim ?? '-' }}
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                            {{ $booking->desk->code ?? 'Meja -' }}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
-                                            <svg class="w-3.5 h-3.5 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                            </svg>
-                                            {{ substr($booking->start_time, 0, 5) }} – {{ substr($booking->end_time, 0, 5) }} WIB
-                                        </span>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="px-6 py-12 text-center text-gray-400">
-                                        <div class="flex flex-col items-center justify-center space-y-2">
-                                            <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                                            </svg>
-                                            <span class="text-sm font-medium">Belum ada aktivitas booking hari ini.</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+            <div class="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Meja Tersedia</p>
+                <h3 class="text-3xl font-extrabold text-emerald-600 mt-1">{{ $desks->count() - $activeBookings->count() }}</h3>
+                <p class="text-xs text-emerald-400 mt-1">Siap digunakan</p>
             </div>
 
+            <div class="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Mahasiswa</p>
+                <h3 class="text-3xl font-extrabold text-indigo-600 mt-1">{{ $totalMahasiswa }}</h3>
+                <p class="text-xs text-indigo-400 mt-1">{{ $totalBookingBulanIni }} booking bulan ini</p>
+            </div>
         </div>
+
+        {{-- ── GRAFIK + TOP MEJA ─────────────────────────────────────── --}}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            {{-- Grafik 7 hari --}}
+            <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <h3 class="text-base font-bold text-gray-800 mb-4">Booking 7 Hari Terakhir</h3>
+                <canvas id="weeklyChart" height="100"></canvas>
+            </div>
+
+            {{-- Top 5 Meja --}}
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <h3 class="text-base font-bold text-gray-800 mb-4">Meja Terpopuler</h3>
+                @forelse($topDesks as $i => $item)
+                    <div class="flex items-center justify-between py-2 {{ $i < $topDesks->count()-1 ? 'border-b border-gray-50' : '' }}">
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center">{{ $i+1 }}</span>
+                            <div>
+                                <p class="text-sm font-semibold text-gray-800">{{ $item->desk->code ?? '-' }}</p>
+                                <p class="text-xs text-gray-400">{{ $item->desk->location ?? '' }}</p>
+                            </div>
+                        </div>
+                        <span class="text-sm font-bold text-indigo-600">{{ $item->total }}x</span>
+                    </div>
+                @empty
+                    <p class="text-sm text-gray-400 text-center py-4">Belum ada data.</p>
+                @endforelse
+            </div>
+        </div>
+
+        {{-- ── DENAH VISUAL MEJA ─────────────────────────────────────── --}}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-5">
+                <div>
+                    <h3 class="text-base font-bold text-gray-800">Denah Visual Meja — Hari Ini</h3>
+                    <p class="text-xs text-gray-400 mt-0.5">Real-time · auto-refresh 30 detik</p>
+                </div>
+                <div class="flex items-center gap-4 text-xs font-medium">
+                    <span class="flex items-center gap-1.5 text-gray-600"><span class="w-3 h-3 rounded bg-emerald-500"></span> Kosong</span>
+                    <span class="flex items-center gap-1.5 text-gray-600"><span class="w-3 h-3 rounded bg-red-500"></span> Ter-booking</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+                @foreach($desks as $desk)
+                    @php $isBooked = $activeBookings->contains('desk_id', $desk->id); @endphp
+                    <div class="p-4 rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-md
+                        {{ $isBooked ? 'bg-red-50 border-red-200 text-red-900' : 'bg-emerald-50 border-emerald-200 text-emerald-900' }}">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] uppercase font-semibold text-gray-400">{{ $desk->location }}</span>
+                            <span class="flex h-2 w-2 relative">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 {{ $isBooked ? 'bg-red-400' : 'bg-emerald-400' }}"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 {{ $isBooked ? 'bg-red-500' : 'bg-emerald-500' }}"></span>
+                            </span>
+                        </div>
+                        <div class="text-xl font-black">{{ $desk->code }}</div>
+                        <div class="mt-1.5 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full inline-block
+                            {{ $isBooked ? 'bg-red-200/60 text-red-800' : 'bg-emerald-200/60 text-emerald-800' }}">
+                            {{ $isBooked ? 'Ter-Booking' : 'Kosong' }}
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- ── LOG BOOKING HARI INI ──────────────────────────────────── --}}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-bold text-gray-800">Log Booking Aktif Hari Ini</h3>
+                    <p class="text-xs text-gray-400 mt-0.5">{{ $activeBookings->count() }} booking aktif</p>
+                </div>
+                <a href="{{ route('admin.bookings.index') }}" class="text-xs text-indigo-600 font-semibold hover:underline">
+                    Lihat semua →
+                </a>
+            </div>
+            <table class="min-w-full divide-y divide-gray-100 text-sm">
+                <thead class="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <tr>
+                        <th class="px-6 py-3 text-left">#</th>
+                        <th class="px-6 py-3 text-left">Mahasiswa</th>
+                        <th class="px-6 py-3 text-left">NIM</th>
+                        <th class="px-6 py-3 text-left">Meja</th>
+                        <th class="px-6 py-3 text-left">Sesi Waktu</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    @forelse($activeBookings as $i => $booking)
+                        <tr class="hover:bg-gray-50/50 transition-colors">
+                            <td class="px-6 py-3 text-gray-400 font-mono text-xs">{{ $i+1 }}</td>
+                            <td class="px-6 py-3">
+                                <div class="font-semibold text-gray-900">{{ $booking->user->name ?? '-' }}</div>
+                                <div class="text-xs text-gray-400">{{ $booking->user->email ?? '' }}</div>
+                            </td>
+                            <td class="px-6 py-3 font-mono text-gray-500 text-xs">{{ $booking->user->nim ?? '-' }}</td>
+                            <td class="px-6 py-3">
+                                <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-lg text-xs font-bold">
+                                    {{ $booking->desk->code ?? '-' }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-3 font-mono text-xs text-gray-700">
+                                {{ substr($booking->start_time, 0, 5) }} – {{ substr($booking->end_time, 0, 5) }} WIB
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-6 py-10 text-center text-gray-400 text-sm">
+                                Belum ada booking aktif hari ini.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
     </div>
+
+    {{-- Chart.js via CDN --}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        const ctx = document.getElementById('weeklyChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode($chartLabels) !!},
+                datasets: [{
+                    label: 'Jumlah Booking',
+                    data: {!! json_encode($chartData) !!},
+                    backgroundColor: 'rgba(99, 102, 241, 0.7)',
+                    borderColor: 'rgba(99, 102, 241, 1)',
+                    borderWidth: 1,
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 },
+                        grid: { color: 'rgba(0,0,0,0.04)' }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    </script>
 </x-app-layout>

@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthApiController;
 use App\Http\Controllers\Api\DeskApiController;
@@ -9,28 +8,31 @@ use App\Http\Controllers\Api\BookingApiController;
 /*
 |--------------------------------------------------------------------------
 | API Routes — Campus Space
-|--------------------------------------------------------------------------
-| Semua route di sini otomatis diawali dengan prefix /api
-| dan dikecualikan dari CSRF (sehingga aman dipakai di Postman & mobile app)
+| Semua route bebas CSRF. Protected route butuh header:
+| Authorization: Bearer {token}
 |--------------------------------------------------------------------------
 */
 
-// ── PUBLIC ROUTES (tidak butuh token) ──────────────────────────────────
+// ── PUBLIC ──────────────────────────────────────────────────────────────
 Route::post('/login',    [AuthApiController::class, 'login']);
 Route::post('/register', [AuthApiController::class, 'register']);
 
-// ── PROTECTED ROUTES (butuh header: Authorization: Bearer {token}) ─────
+// ── PROTECTED ───────────────────────────────────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
 
-    // Auth
-    Route::post('/logout',  [AuthApiController::class, 'logout']);
-    Route::get('/profile',  [AuthApiController::class, 'profile']);
+    // Auth & Profile
+    Route::post('/logout',         [AuthApiController::class, 'logout']);
+    Route::get('/profile',         [AuthApiController::class, 'profile']);
+    Route::put('/profile',         [AuthApiController::class, 'updateProfile']);
 
-    // Desks — daftar meja + status ketersediaan hari ini
-    Route::get('/desks',    [DeskApiController::class, 'index']);
+    // Desks
+    Route::get('/desks',               [DeskApiController::class, 'index']);      // list + status
+    Route::get('/desks/available',     [DeskApiController::class, 'available']);  // cek tersedia per slot waktu
+    Route::get('/desks/{id}',          [DeskApiController::class, 'show']);       // detail + slot terisi
 
     // Bookings
-    Route::get('/bookings',          [BookingApiController::class, 'index']);   // riwayat booking saya
-    Route::post('/bookings',         [BookingApiController::class, 'store']);   // buat booking baru
-    Route::delete('/bookings/{id}',  [BookingApiController::class, 'cancel']);  // batalkan booking
+    Route::get('/bookings',            [BookingApiController::class, 'index']);   // riwayat saya
+    Route::post('/bookings',           [BookingApiController::class, 'store']);   // buat booking
+    Route::get('/bookings/{id}',       [BookingApiController::class, 'show']);    // detail booking
+    Route::delete('/bookings/{id}',    [BookingApiController::class, 'cancel']);  // batalkan
 });

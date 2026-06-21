@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laporan Campus Space Management System</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11pt; color: #1a1a2e; line-height: 1.6; background: #fff; }
+
+  /* Cover */
+  .cover { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 60px 40px; background: linear-gradient(135deg, #3730a3 0%, #1e1b4b 100%); color: white; page-break-after: always; }
+  .cover .badge { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 50px; padding: 8px 20px; font-size: 10pt; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 32px; display: inline-block; }
+  .cover h1 { font-size: 32pt; font-weight: 800; margin-bottom: 12px; letter-spacing: -1px; }
+  .cover h2 { font-size: 14pt; font-weight: 400; opacity: 0.8; margin-bottom: 48px; }
+  .cover .divider { width: 60px; height: 3px; background: #a5b4fc; margin: 0 auto 40px; border-radius: 2px; }
+  .cover .meta { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; max-width: 600px; margin: 0 auto; }
+  .cover .meta-item { background: rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; }
+  .cover .meta-item .label { font-size: 8pt; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .cover .meta-item .value { font-size: 11pt; font-weight: 700; }
+  .cover .footer-cover { margin-top: 60px; opacity: 0.5; font-size: 9pt; }
+
+  /* Content */
+  .content { max-width: 800px; margin: 0 auto; padding: 40px; }
+
+  /* TOC */
+  .toc { background: #f8f9ff; border: 1px solid #e0e7ff; border-radius: 12px; padding: 28px 32px; margin-bottom: 48px; page-break-after: always; }
+  .toc h2 { font-size: 14pt; color: #3730a3; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #e0e7ff; }
+  .toc ol { padding-left: 20px; }
+  .toc li { padding: 5px 0; color: #374151; font-size: 10.5pt; }
+  .toc li a { color: #4338ca; text-decoration: none; }
+  .toc li.sub { margin-left: 20px; font-size: 10pt; color: #6b7280; }
+
+  /* Sections */
+  .section { margin-bottom: 48px; page-break-inside: avoid; }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e0e7ff; }
+  .section-num { width: 32px; height: 32px; background: #3730a3; color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13pt; font-weight: 800; flex-shrink: 0; }
+  .section h2 { font-size: 15pt; color: #1e1b4b; font-weight: 700; margin: 0; }
+  .section h3 { font-size: 12pt; color: #3730a3; font-weight: 700; margin: 20px 0 10px; }
+  .section h4 { font-size: 10.5pt; color: #374151; font-weight: 700; margin: 14px 0 6px; }
+  .section p { color: #374151; margin-bottom: 10px; font-size: 10.5pt; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 10pt; }
+  th { background: #3730a3; color: white; padding: 9px 12px; text-align: left; font-weight: 600; }
+  td { padding: 8px 12px; border-bottom: 1px solid #e5e7eb; color: #374151; }
+  tr:nth-child(even) td { background: #f8f9ff; }
+  tr:last-child td { border-bottom: none; }
+
+  /* Badges */
+  .badge-done { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; padding: 2px 8px; border-radius: 12px; font-size: 9pt; font-weight: 600; }
+  .badge-todo { background: #fff7ed; color: #92400e; border: 1px solid #fde68a; padding: 2px 8px; border-radius: 12px; font-size: 9pt; font-weight: 600; }
+
+  /* Code blocks */
+  pre { background: #1e1b4b; color: #a5b4fc; padding: 16px; border-radius: 10px; font-size: 9pt; overflow: hidden; margin: 12px 0; font-family: 'Courier New', monospace; line-height: 1.5; }
+  code { background: #ede9fe; color: #4338ca; padding: 1px 5px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 9.5pt; }
+
+  /* Info boxes */
+  .box { border-radius: 10px; padding: 16px 20px; margin: 14px 0; }
+  .box-info { background: #eff6ff; border-left: 4px solid #3b82f6; }
+  .box-success { background: #f0fdf4; border-left: 4px solid #22c55e; }
+  .box-warn { background: #fffbeb; border-left: 4px solid #f59e0b; }
+  .box p { margin: 0; font-size: 10pt; }
+  .box strong { display: block; margin-bottom: 4px; }
+
+  /* Flow diagram */
+  .flow { background: #f8f9ff; border: 1px solid #e0e7ff; border-radius: 10px; padding: 16px 20px; margin: 14px 0; }
+  .flow pre { background: transparent; color: #374151; padding: 0; margin: 0; font-size: 9pt; }
+
+  /* Status grid */
+  .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
+  .status-item { display: flex; align-items: center; gap: 10px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 14px; }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .status-dot.done { background: #22c55e; }
+  .status-dot.todo { background: #f59e0b; }
+  .status-item span { font-size: 10pt; color: #374151; }
+
+  /* Page break utility */
+  .page-break { page-break-before: always; }
+
+  /* Print */
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .no-print { display: none; }
+    .cover { min-height: 100vh; }
+    pre { white-space: pre-wrap; word-break: break-all; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ COVER ═══════════════════════════════ -->
+<div class="cover">
+  <span class="badge">Laporan Teknis</span>
+  <h1>Campus Space</h1>
+  <h2>Management System — Sistem Pemesanan Meja Belajar Kampus</h2>
+  <div class="divider"></div>
+  <div class="meta">
+    <div class="meta-item">
+      <div class="label">Platform</div>
+      <div class="value">Laravel 11</div>
+    </div>
+    <div class="meta-item">
+      <div class="label">Database</div>
+      <div class="value">MySQL</div>
+    </div>
+    <div class="meta-item">
+      <div class="label">Tanggal</div>
+      <div class="value">Juni 2026</div>
+    </div>
+  </div>
+  <div class="footer-cover">Dokumen ini dibuat otomatis dari codebase Campus Space</div>
+</div>
+
+<!-- ═══════════════════════════════ CONTENT ═════════════════════════════ -->
+<div class="content">
+
+<!-- DAFTAR ISI -->
+<div class="toc">
+  <h2>Daftar Isi</h2>
+  <ol>
+    <li>Gambaran Umum Sistem</li>
+    <li>Arsitektur & Teknologi</li>
+    <li>Database — Struktur Tabel</li>
+    <li>Sistem Keamanan & Hak Akses</li>
+    <li>Aturan Bisnis Booking</li>
+    <li class="sub">5.1 Validasi yang Diterapkan</li>
+    <li class="sub">5.2 Conflict Detection</li>
+    <li>Fitur Web Admin</li>
+    <li class="sub">6.1 Dashboard Monitoring</li>
+    <li class="sub">6.2 Kelola Meja</li>
+    <li class="sub">6.3 Kelola Booking</li>
+    <li class="sub">6.4 Kelola User</li>
+    <li>Fitur Halaman Mahasiswa</li>
+    <li>REST API untuk Mobile App</li>
+    <li>Auto-Expire Booking (Scheduler)</li>
+    <li>Alur Lengkap Sistem</li>
+    <li>Data Demo & Akun Uji Coba</li>
+    <li>Status Implementasi & Roadmap</li>
+  </ol>
+</div>

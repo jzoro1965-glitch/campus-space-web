@@ -84,6 +84,7 @@
                 <div class="flex items-center gap-4 text-xs font-medium">
                     <span class="flex items-center gap-1.5 text-gray-600"><span class="w-3 h-3 rounded bg-emerald-500"></span> Kosong</span>
                     <span class="flex items-center gap-1.5 text-gray-600"><span class="w-3 h-3 rounded bg-red-500"></span> Ter-booking</span>
+                    <span class="flex items-center gap-1.5 text-gray-600"><span class="w-3 h-3 rounded bg-gray-400"></span> Nonaktif</span>
                 </div>
             </div>
 
@@ -91,18 +92,28 @@
                 @foreach($desks as $desk)
                     @php $isBooked = $activeBookings->contains('desk_id', $desk->id); @endphp
                     <div class="p-4 rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-md
-                        {{ $isBooked ? 'bg-red-50 border-red-200 text-red-900' : 'bg-emerald-50 border-emerald-200 text-emerald-900' }}">
+                        {{ !$desk->is_active
+                            ? 'bg-gray-50 border-gray-200 text-gray-400 opacity-50'
+                            : ($isBooked ? 'bg-red-50 border-red-200 text-red-900' : 'bg-emerald-50 border-emerald-200 text-emerald-900') }}">
                         <div class="flex justify-between items-start mb-2">
                             <span class="text-[10px] uppercase font-semibold text-gray-400">{{ $desk->location }}</span>
-                            <span class="flex h-2 w-2 relative">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 {{ $isBooked ? 'bg-red-400' : 'bg-emerald-400' }}"></span>
-                                <span class="relative inline-flex rounded-full h-2 w-2 {{ $isBooked ? 'bg-red-500' : 'bg-emerald-500' }}"></span>
-                            </span>
+                            @if($desk->is_active)
+                                <span class="flex h-2 w-2 relative">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 {{ $isBooked ? 'bg-red-400' : 'bg-emerald-400' }}"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 {{ $isBooked ? 'bg-red-500' : 'bg-emerald-500' }}"></span>
+                                </span>
+                            @else
+                                <span class="flex h-2 w-2 relative">
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-gray-400"></span>
+                                </span>
+                            @endif
                         </div>
                         <div class="text-xl font-black">{{ $desk->code }}</div>
                         <div class="mt-1.5 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full inline-block
-                            {{ $isBooked ? 'bg-red-200/60 text-red-800' : 'bg-emerald-200/60 text-emerald-800' }}">
-                            {{ $isBooked ? 'Ter-Booking' : 'Kosong' }}
+                            {{ !$desk->is_active
+                                ? 'bg-gray-200 text-gray-500'
+                                : ($isBooked ? 'bg-red-200/60 text-red-800' : 'bg-emerald-200/60 text-emerald-800') }}">
+                            {{ !$desk->is_active ? 'Nonaktif' : ($isBooked ? 'Ter-Booking' : 'Kosong') }}
                         </div>
                     </div>
                 @endforeach

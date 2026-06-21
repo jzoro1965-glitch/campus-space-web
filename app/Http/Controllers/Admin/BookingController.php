@@ -46,7 +46,8 @@ class BookingController extends Controller
     public function create()
     {
         $mahasiswas = User::where('role', 'mahasiswa')->orderBy('name')->get();
-        $desks      = Desk::orderBy('code')->get();
+        // Admin hanya bisa pilih meja yang aktif saat buat booking manual
+        $desks      = Desk::where('is_active', true)->orderBy('code')->get();
         $today      = now()->format('Y-m-d');
 
         return view('admin.bookings.create', compact('mahasiswas', 'desks', 'today'));

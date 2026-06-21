@@ -66,6 +66,8 @@
                                 <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-semibold">Approved</span>
                             @elseif($booking->status === 'cancelled')
                                 <span class="px-2.5 py-1 bg-red-50 text-red-700 border border-red-200 rounded-full text-xs font-semibold">Cancelled</span>
+                            @elseif($booking->status === 'expired')
+                                <span class="px-2.5 py-1 bg-orange-50 text-orange-700 border border-orange-200 rounded-full text-xs font-semibold">Expired</span>
                             @else
                                 <span class="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold">{{ $booking->status }}</span>
                             @endif
@@ -90,7 +92,6 @@
                                 </form>
                             </div>
                         </td>
-                    </tr>
                 @empty
                     <tr>
                         <td colspan="7" class="px-6 py-12 text-center text-gray-400">

@@ -16,7 +16,7 @@ class DeskApiController extends Controller
     public function index(Request $request)
     {
         $date  = $request->input('date', now()->format('Y-m-d'));
-        $desks = Desk::all();
+        $desks = Desk::where('is_active', true)->get();
 
         $bookedIds = Booking::where('booking_date', $date)
             ->where('status', 'approved')
@@ -43,10 +43,10 @@ class DeskApiController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $desk = Desk::find($id);
+        $desk = Desk::where('is_active', true)->find($id);
 
         if (! $desk) {
-            return response()->json(['success' => false, 'message' => 'Meja tidak ditemukan.'], 404);
+            return response()->json(['success' => false, 'message' => 'Meja tidak ditemukan atau tidak aktif.'], 404);
         }
 
         $date = $request->input('date', now()->format('Y-m-d'));
@@ -97,7 +97,8 @@ class DeskApiController extends Controller
             ->pluck('desk_id')
             ->toArray();
 
-        $available = Desk::whereNotIn('id', $occupiedDeskIds)
+        $available = Desk::where('is_active', true)
+            ->whereNotIn('id', $occupiedDeskIds)
             ->get()
             ->map(fn ($d) => [
                 'id'       => $d->id,

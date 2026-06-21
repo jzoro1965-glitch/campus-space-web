@@ -3,7 +3,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <h2 class="text-xl font-bold text-gray-800">Kelola Meja</h2>
-                <p class="text-xs text-gray-400 mt-0.5">Tambah, edit, atau hapus data meja belajar</p>
+                <p class="text-xs text-gray-400 mt-0.5">Tambah, edit, nonaktifkan, atau hapus data meja belajar</p>
             </div>
             <a href="{{ route('admin.desks.create') }}"
                class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors">
@@ -20,27 +20,56 @@
                     <th class="px-6 py-4 text-left">#</th>
                     <th class="px-6 py-4 text-left">Kode Meja</th>
                     <th class="px-6 py-4 text-left">Lokasi</th>
+                    <th class="px-6 py-4 text-left">Status</th>
                     <th class="px-6 py-4 text-left">Total Booking</th>
                     <th class="px-6 py-4 text-right">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 bg-white">
                 @forelse($desks as $i => $desk)
-                    <tr class="hover:bg-gray-50 transition-colors">
+                    <tr class="hover:bg-gray-50 transition-colors {{ !$desk->is_active ? 'opacity-60' : '' }}">
                         <td class="px-6 py-4 text-gray-400 font-mono text-xs">{{ $i + 1 }}</td>
                         <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold
+                                {{ $desk->is_active ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-gray-100 text-gray-500 border border-gray-200' }}">
                                 {{ $desk->code }}
                             </span>
                         </td>
                         <td class="px-6 py-4 text-gray-700 font-medium">{{ $desk->location }}</td>
+                        <td class="px-6 py-4">
+                            @if($desk->is_active)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-semibold">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    Aktif
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-500 border border-gray-200 rounded-full text-xs font-semibold">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                                    Nonaktif
+                                </span>
+                            @endif
+                        </td>
                         <td class="px-6 py-4 text-gray-500">{{ $desk->bookings_count }} booking</td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">
+                                {{-- Toggle Aktif/Nonaktif --}}
+                                <form method="POST" action="{{ route('admin.desks.toggle', $desk) }}">
+                                    @csrf @method('PATCH')
+                                    <button type="submit"
+                                            title="{{ $desk->is_active ? 'Nonaktifkan meja' : 'Aktifkan meja' }}"
+                                            class="px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors
+                                                {{ $desk->is_active
+                                                    ? 'text-gray-600 bg-gray-50 border-gray-200 hover:bg-gray-100'
+                                                    : 'text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-emerald-100' }}">
+                                        {{ $desk->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                    </button>
+                                </form>
+
                                 <a href="{{ route('admin.desks.edit', $desk) }}"
                                    class="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors">
                                     Edit
                                 </a>
+
                                 <form method="POST" action="{{ route('admin.desks.destroy', $desk) }}"
                                       onsubmit="return confirm('Yakin hapus meja {{ $desk->code }}? Semua booking terkait akan terhapus.')">
                                     @csrf @method('DELETE')
@@ -54,7 +83,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-12 text-center text-gray-400">
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-400">
                             Belum ada data meja. <a href="{{ route('admin.desks.create') }}" class="text-indigo-600 font-medium hover:underline">Tambah sekarang</a>.
                         </td>
                     </tr>

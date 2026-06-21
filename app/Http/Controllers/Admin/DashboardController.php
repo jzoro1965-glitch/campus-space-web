@@ -13,7 +13,8 @@ class DashboardController extends Controller
     public function index()
     {
         $today = now()->format('Y-m-d');
-        $desks = Desk::all();
+        // Admin lihat semua meja (aktif dan nonaktif) di dashboard
+        $desks = Desk::orderBy('code')->get();
 
         $activeBookings = Booking::with(['user', 'desk'])
             ->where('booking_date', $today)

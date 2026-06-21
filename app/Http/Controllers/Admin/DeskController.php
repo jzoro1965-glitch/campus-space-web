@@ -40,11 +40,16 @@ class DeskController extends Controller
     public function update(Request $request, Desk $desk)
     {
         $request->validate([
-            'code'     => ['required', 'string', 'max:20', 'unique:desks,code,' . $desk->id],
-            'location' => ['required', 'string', 'max:100'],
+            'code'      => ['required', 'string', 'max:20', 'unique:desks,code,' . $desk->id],
+            'location'  => ['required', 'string', 'max:100'],
+            'is_active' => ['sometimes', 'boolean'],
         ]);
 
-        $desk->update($request->only('code', 'location'));
+        $desk->update([
+            'code'      => $request->input('code'),
+            'location'  => $request->input('location'),
+            'is_active' => $request->boolean('is_active', true),
+        ]);
 
         return redirect()->route('admin.desks.index')
             ->with('success', "Meja {$desk->code} berhasil diperbarui.");
@@ -56,5 +61,16 @@ class DeskController extends Controller
 
         return redirect()->route('admin.desks.index')
             ->with('success', 'Meja berhasil dihapus.');
+    }
+
+    /**
+     * Toggle status aktif/nonaktif meja tanpa menghapus data
+     */
+    public function toggleActive(Desk $desk)
+    {
+        $desk->update(['is_active' => ! $desk->is_active]);
+
+        $status = $desk->is_active ? 'diaktifkan' : 'dinonaktifkan';
+        return back()->with('success', "Meja {$desk->code} berhasil {$status}.");
     }
 }

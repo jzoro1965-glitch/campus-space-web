@@ -10,16 +10,15 @@ use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
-    // Aturan bisnis — bisa diubah dari sini
     const JAM_BUKA      = '07:00';
     const JAM_TUTUP     = '21:00';
-    const MAKS_DURASI   = 3;   // jam
-    const MAKS_PER_HARI = 1;   // booking aktif per hari
+    const MAKS_DURASI   = 3;
+    const MAKS_PER_HARI = 1;
 
     public function index()
     {
         $today = now()->format('Y-m-d');
-        $desks = Desk::all();
+        $desks = Desk::where('is_active', true)->get();
 
         $bookedDeskIds = Booking::where('booking_date', $today)
             ->where('status', 'approved')
@@ -32,14 +31,20 @@ class HomeController extends Controller
             ->take(15)
             ->get();
 
-        // Apakah hari ini sudah punya booking aktif
+        $todayBookings = Booking::with(['user', 'desk'])
+            ->where('booking_date', $today)
+            ->where('status', 'approved')
+            ->orderBy('start_time')
+            ->get();
+
         $sudahBookingHariIni = Booking::where('user_id', Auth::id())
             ->where('booking_date', $today)
             ->where('status', 'approved')
             ->exists();
 
         return view('mahasiswa.home', compact(
-            'desks', 'bookedDeskIds', 'myBookings', 'today', 'sudahBookingHariIni'
+            'desks', 'bookedDeskIds', 'myBookings',
+            'today', 'sudahBookingHariIni', 'todayBookings'
         ));
     }
 
@@ -55,6 +60,13 @@ class HomeController extends Controller
         $start = $validated['start_time'];
         $end   = $validated['end_time'];
         $date  = $validated['booking_date'];
+
+        // 0. Cek meja masih aktif
+        $desk = Desk::find($validated['desk_id']);
+        if (! $desk || ! $desk->is_active) {
+            return back()->withInput()
+                ->with('error', 'Meja tidak tersedia atau sedang dinonaktifkan oleh admin.');
+        }
 
         // 1. Cek jam operasional
         if ($start < self::JAM_BUKA || $end > self::JAM_TUTUP) {
@@ -80,7 +92,7 @@ class HomeController extends Controller
                 ->with('error', 'Anda hanya bisa membuat ' . self::MAKS_PER_HARI . ' booking aktif per hari.');
         }
 
-        // 4. Cek konflik jadwal meja
+        // 4. Cek konflik jadwal
         $conflict = Booking::where('desk_id', $validated['desk_id'])
             ->where('booking_date', $date)
             ->where('status', 'approved')
@@ -116,7 +128,6 @@ class HomeController extends Controller
         }
 
         $booking->update(['status' => 'cancelled']);
-
         return back()->with('success', 'Booking berhasil dibatalkan.');
     }
 }

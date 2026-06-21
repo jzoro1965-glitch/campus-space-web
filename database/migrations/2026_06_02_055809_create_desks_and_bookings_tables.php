@@ -12,7 +12,8 @@ return new class extends Migration
         Schema::create('desks', function (Blueprint $table) {
             $table->id();
             $table->string('code')->unique(); // Contoh: A1, B3
-            $table->string('location');     // Contoh: Lantai 1, Pojok
+            $table->string('location');       // Contoh: Lantai 1, Pojok
+            $table->boolean('is_active')->default(true); // false = nonaktif (tidak bisa dibooking)
             $table->timestamps();
         });
 

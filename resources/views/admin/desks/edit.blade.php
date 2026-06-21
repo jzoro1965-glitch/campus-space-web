@@ -6,7 +6,7 @@
             </a>
             <div>
                 <h2 class="text-xl font-bold text-gray-800">Edit Meja — {{ $desk->code }}</h2>
-                <p class="text-xs text-gray-400 mt-0.5">Perbarui informasi meja</p>
+                <p class="text-xs text-gray-400 mt-0.5">Perbarui informasi dan status meja</p>
             </div>
         </div>
     </x-slot>
@@ -32,6 +32,28 @@
                     @error('location')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
+                </div>
+
+                {{-- Toggle Status Aktif --}}
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-700">Status Meja</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Meja nonaktif tidak bisa dibooking oleh mahasiswa</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer" title="Toggle status aktif/nonaktif">
+                        <input type="hidden" name="is_active" value="0">
+                        <input type="checkbox" name="is_active" value="1"
+                               class="sr-only peer"
+                               {{ old('is_active', $desk->is_active) ? 'checked' : '' }}>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer
+                                    peer-checked:after:translate-x-full peer-checked:after:border-white
+                                    after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                                    after:bg-white after:border-gray-300 after:border after:rounded-full
+                                    after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <span class="ml-3 text-sm font-medium text-gray-700">
+                            {{ old('is_active', $desk->is_active) ? 'Aktif' : 'Nonaktif' }}
+                        </span>
+                    </label>
                 </div>
 
                 <div class="flex items-center gap-3 pt-2">

@@ -1,234 +1,168 @@
-# 🎯 Campus Space - Setup Lengkap
+# Campus Space — Setup & Panduan Menjalankan
 
-## ✅ Yang Telah Diperbaiki & Dilengkapi
+## Cara Menjalankan Aplikasi
 
-### 1. **DATABASE & MODELS**
-- ✅ Model `User` memiliki kolom: `nim` (string, unique), `name`, `email`, `password`, dan `role` (enum: admin, mahasiswa)
-- ✅ Model `Desk` memiliki kolom: `code` (string, unique) dan `location` (string)
-- ✅ Model `Booking` memiliki kolom: `user_id`, `desk_id`, `booking_date`, `start_time`, `end_time`, `status` (default: approved)
-- ✅ Relasi `belongsTo` dan `hasMany` telah diatur dengan benar:
-  - `User->bookings()` (hasMany)
-  - `Desk->bookings()` (hasMany)
-  - `Booking->user()` (belongsTo)
-  - `Booking->desk()` (belongsTo)
-
-### 2. **CONTROLLER LOGIC**
-- ✅ `Admin\DashboardController` dengan method `index()`:
-  - Mengambil seluruh data Desk
-  - Mengambil data Booking hari ini dengan relasi `user` dan `desk` menggunakan eager loading
-  - Mengirim data ke view `admin.dashboard`
-
-### 3. **ROUTING**
-- ✅ Rute `GET /admin/dashboard` terdaftar dan mengarah ke `DashboardController`
-- ✅ Rute bypass tanpa middleware auth untuk testing developer
-- ✅ File `auth.php` dimuat agar layout tidak crash
-- ✅ Auth Controllers dibuat:
-  - `AuthenticatedSessionController` (login & logout)
-  - `RegisteredUserController` (register)
-
-### 4. **BLADE VIEW & LAYOUT**
-- ✅ View `admin/dashboard.blade.php` dibungkus oleh `<x-app-layout>`
-- ✅ Tampilan 3 card statistik menggunakan Tailwind:
-  - **Total Meja** (biru)
-  - **Booking Aktif Hari Ini** (merah)
-  - **Meja Tersedia** (hijau)
-- ✅ **Denah Visual Interaktif** berbentuk grid:
-  - Kotak **MERAH** = Status TER-BOOKING (jika desk_id ada di bookings hari ini)
-  - Kotak **HIJAU** = Status KOSONG (jika desk_id tidak ada di bookings)
-- ✅ **Tabel Log** menampilkan:
-  - Nama mahasiswa
-  - NIM
-  - Kode meja
-  - Range `start_time` – `end_time` (realtime dari database)
-
-### 5. **AUTH VIEWS**
-- ✅ `auth/login.blade.php` (halaman login)
-- ✅ `auth/register.blade.php` (halaman registrasi)
-
----
-
-## 🚀 Cara Menjalankan Aplikasi
-
-### **1. Install Dependencies**
+### 1. Install Dependencies
 ```bash
 composer install
 npm install
 ```
 
-### **2. Setup Environment**
+### 2. Setup Environment
 ```bash
 copy .env.example .env
 php artisan key:generate
 ```
 
-### **3. Jalankan Migrasi & Seeder**
+### 3. Migrasi & Seed Data
 ```bash
 php artisan migrate:fresh --seed
 ```
 
-Ini akan membuat:
-- 1 akun Admin (email: `admin@kampus.com`, password: `password`)
-- 3 akun Mahasiswa
-- 12 Meja (A1-A3, B1-B3, C1-C3, D1-D3)
-- 3 Booking aktif hari ini
-
-### **4. Compile Assets (Opsional)**
-```bash
-npm run dev
-```
-
-### **5. Jalankan Server**
+### 4. Jalankan Server
 ```bash
 php artisan serve
 ```
 
-### **6. Akses Dashboard**
-Buka browser dan kunjungi:
-```
-http://127.0.0.1:8000/admin/dashboard
-```
+### 5. Akses Aplikasi
+| URL | Keterangan |
+|-----|-----------|
+| `http://127.0.0.1:8000` | Redirect ke halaman login |
+| `http://127.0.0.1:8000/admin/dashboard` | Dashboard admin |
+| `http://127.0.0.1:8000/mahasiswa` | Halaman booking mahasiswa |
 
 ---
 
-## 📋 Data Seeder
+## Akun Demo (Setelah Seed)
 
-### Admin
-- **NIM**: 11111111
-- **Email**: admin@kampus.com
-- **Password**: password
-- **Role**: admin
-
-### Mahasiswa
-1. **Leovan Gamalia**
-   - NIM: 22010001
-   - Email: leo@student.com
-   - Password: password
-
-2. **Siti Nurhaliza**
-   - NIM: 22010002
-   - Email: siti@student.com
-   - Password: password
-
-3. **Budi Santoso**
-   - NIM: 22010003
-   - Email: budi@student.com
-   - Password: password
+| Role | Email | Password | Keterangan |
+|------|-------|----------|-----------|
+| Super Admin | admin@kampus.com | password | Akses penuh, tidak bisa dihapus |
+| Mahasiswa | leo@student.com | password | Leovan Gamalia |
+| Mahasiswa | siti@student.com | password | Siti Nurhaliza |
+| Mahasiswa | budi@student.com | password | Budi Santoso |
+| Mahasiswa | dewi@student.com | password | Dewi Rahayu |
+| Mahasiswa | raka@student.com | password | Raka Pratama |
 
 ---
 
-## 🎨 Fitur Dashboard
+## Data yang Dibuat Seeder
 
-### **Card Statistik**
-1. **Total Meja** — menampilkan jumlah total meja yang tersedia
-2. **Booking Aktif Hari Ini** — jumlah booking dengan status approved hari ini
-3. **Meja Tersedia** — selisih antara total meja dengan booking aktif
-
-### **Denah Visual Grid**
-- Grid interaktif yang menampilkan status setiap meja
-- **Hijau** = Meja kosong dan bisa di-booking
-- **Merah** = Meja sudah ter-booking hari ini
-- Hover effect untuk pengalaman UI yang lebih baik
-- Badge animasi untuk indikator status real-time
-
-### **Tabel Log Booking**
-- Menampilkan semua booking aktif hari ini
-- Informasi mahasiswa lengkap (nama, email, NIM)
-- Kode meja yang dibooking
-- Range waktu booking (start_time – end_time)
-- Empty state ketika belum ada booking
+- **12 meja** — A1–A3 (Lantai 1), B1–B3 (Lantai 2), C1–C3 (Lantai 3), D1–D3 (Lantai 4)
+- **1 meja nonaktif** — D3 (demo fitur toggle nonaktif)
+- **5 booking hari ini** — dashboard langsung terisi
+- **~20 booking 7 hari terakhir** — grafik Chart.js terlihat bervariasi
+- **2 booking cancelled** — untuk variasi data riwayat
 
 ---
 
-## 🔧 Teknologi yang Digunakan
-
-- **Backend**: Laravel 11
-- **Frontend**: Blade Templates + TailwindCSS (CDN)
-- **Database**: SQLite (bisa diganti ke MySQL/PostgreSQL di `.env`)
-- **Authentication**: Laravel Sanctum + Session
-
----
-
-## 📁 Struktur File Penting
+## Struktur File Penting
 
 ```
-app/
-├── Http/Controllers/
-│   ├── Admin/
-│   │   └── DashboardController.php
-│   └── Auth/
-│       ├── AuthenticatedSessionController.php
-│       └── RegisteredUserController.php
-├── Models/
-│   ├── User.php (+ relasi bookings)
-│   ├── Desk.php (+ relasi bookings)
-│   └── Booking.php (+ relasi user & desk)
+app/Http/Controllers/
+├── Admin/
+│   ├── DashboardController.php     ← statistik, grafik, denah real-time
+│   ├── BookingController.php       ← CRUD + cancel booking
+│   ├── DeskController.php          ← CRUD + toggle aktif/nonaktif
+│   └── UserController.php          ← CRUD + ubah role
+├── Mahasiswa/
+│   └── HomeController.php          ← index, store (booking), cancel
+├── Auth/
+│   ├── AuthenticatedSessionController.php
+│   └── RegisteredUserController.php
+└── Api/
+    ├── AuthApiController.php        ← login, register, logout, profile
+    ├── DeskApiController.php        ← index, show, available
+    └── BookingApiController.php     ← index, show, store, cancel
+
+app/Http/Middleware/
+└── EnsureRole.php                  ← role:admin / role:mahasiswa
+
+routes/
+├── web.php                         ← admin, mahasiswa, auth routes
+├── api.php                         ← 12 REST API endpoints
+└── auth.php                        ← login, register, logout
 
 database/
 ├── migrations/
-│   ├── 0001_01_01_000000_create_users_table.php
-│   └── 2026_06_02_055809_create_desks_and_bookings_tables.php
-└── seeders/
-    └── DatabaseSeeder.php
+│   ├── 000..._create_users_table.php        ← nim, role, is_super_admin
+│   └── 2026..._create_desks_and_bookings.php ← is_active di desks
+└── seeders/DatabaseSeeder.php
 
 resources/views/
 ├── admin/
-│   └── dashboard.blade.php
-├── auth/
-│   ├── login.blade.php
-│   └── register.blade.php
-├── components/
-│   └── app-layout.blade.php
-└── welcome.blade.php
-
-routes/
-├── web.php
-└── auth.php
+│   ├── dashboard.blade.php          ← auto-refresh 30s + Chart.js
+│   ├── bookings/ (index, create)
+│   ├── desks/ (index, create, edit) ← ada toggle is_active
+│   └── users/ (index, create, edit)
+├── mahasiswa/
+│   └── home.blade.php               ← denah + form + aktivitas hari ini
+├── auth/ (login, register)
+└── components/app-layout.blade.php  ← sidebar + flash notifications
 ```
 
 ---
 
-## 🐛 Troubleshooting
+## API Endpoints (untuk Mobile App)
 
-### Error: "Class not found"
+Lihat detail lengkap di `API_DOCUMENTATION.md`.
+
+| Method | Endpoint | Keterangan |
+|--------|----------|-----------|
+| POST | `/api/login` | Login, dapat token |
+| POST | `/api/register` | Daftar akun mahasiswa |
+| POST | `/api/logout` | Hapus token |
+| GET | `/api/profile` | Data profil user |
+| PUT | `/api/profile` | Update profil |
+| GET | `/api/desks` | Daftar meja + status |
+| GET | `/api/desks/available` | Meja tersedia per slot waktu |
+| GET | `/api/desks/{id}` | Detail meja + slot terisi |
+| GET | `/api/bookings` | Riwayat booking saya |
+| POST | `/api/bookings` | Buat booking baru |
+| GET | `/api/bookings/{id}` | Detail satu booking |
+| DELETE | `/api/bookings/{id}` | Batalkan booking |
+
+Semua endpoint (kecuali login & register) butuh header:
+```
+Authorization: Bearer {token}
+```
+
+---
+
+## Aturan Bisnis
+
+| Aturan | Nilai |
+|--------|-------|
+| Jam operasional | 07:00 – 21:00 WIB |
+| Maksimal durasi | 3 jam per sesi |
+| Maksimal booking per hari | 1 booking aktif |
+| Booking masa lalu | Tidak diizinkan |
+| Conflict detection | Otomatis, real-time |
+
+---
+
+## Troubleshooting
+
 ```bash
+# Error class not found
 composer dump-autoload
-```
 
-### Error: "No application encryption key"
-```bash
+# Error no encryption key
 php artisan key:generate
-```
 
-### Error: Database locked (SQLite)
-```bash
-php artisan cache:clear
-php artisan config:clear
-```
-
-### Ingin reset database
-```bash
+# Reset database + data baru
 php artisan migrate:fresh --seed
+
+# Clear semua cache
+php artisan config:clear && php artisan cache:clear && php artisan view:clear
 ```
 
 ---
 
-## 📝 Catatan Developer
+## Teknologi
 
-- Dashboard saat ini **tanpa middleware auth** untuk kemudahan testing
-- Untuk production, tambahkan middleware `auth` dan `role:admin` pada route
-- Warna merah/hijau pada grid meja menggunakan kondisi `$activeBookings->contains('desk_id', $desk->id)`
-- Eager loading digunakan untuk optimasi query (menghindari N+1 problem)
-
----
-
-## 🎯 Next Steps (Opsional)
-
-1. ✅ Tambahkan middleware auth untuk proteksi route admin
-2. ✅ Buat API endpoint untuk mobile app (sudah ada `DeskApiController`)
-3. ✅ Tambahkan fitur filter berdasarkan tanggal
-4. ✅ Tambahkan fitur export laporan (PDF/Excel)
-5. ✅ Tambahkan notifikasi realtime dengan Laravel Echo + Pusher
-
----
-
-**🚀 Aplikasi siap digunakan! Selamat coding!**
+- **Backend** — Laravel 11, PHP 8.2
+- **Auth Web** — Laravel Session
+- **Auth Mobile** — Laravel Sanctum (Bearer Token)
+- **Database** — MySQL (bisa SQLite untuk development)
+- **Frontend** — Blade + TailwindCSS (CDN) + Alpine.js + Chart.js

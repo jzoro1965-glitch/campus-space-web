@@ -18,6 +18,8 @@ class AuthenticatedSessionController extends Controller
 
     /**
      * Proses autentikasi user.
+     * - Invalidate semua session lama user yang sama sebelum login
+     * - Regenerate session ID baru setiap login
      */
     public function store(Request $request)
     {
@@ -27,9 +29,15 @@ class AuthenticatedSessionController extends Controller
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
-
+            // Hapus semua session lama milik user ini dari DB
+            // Ini fix masalah: browser ditutup tanpa logout → session lama masih ada
             $user = Auth::user();
+            \DB::table('sessions')
+                ->where('user_id', $user->id)
+                ->where('id', '!=', $request->session()->getId())
+                ->delete();
+
+            $request->session()->regenerate();
 
             if ($user->role === 'admin') {
                 return redirect(route('admin.dashboard'));
@@ -39,7 +47,7 @@ class AuthenticatedSessionController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'Kredensial yang diberikan tidak cocok dengan data kami.',
+            'email' => 'Email atau password tidak cocok.',
         ])->onlyInput('email');
     }
 

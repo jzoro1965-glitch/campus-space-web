@@ -64,6 +64,15 @@ class BookingApiController extends Controller
         $end   = $validated['end_time'];
         $date  = $validated['booking_date'];
 
+        // Validasi meja masih aktif
+        $desk = \App\Models\Desk::find($validated['desk_id']);
+        if (! $desk || ! $desk->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Meja tidak tersedia atau sedang dinonaktifkan oleh admin.',
+            ], 422);
+        }
+
         // Validasi jam operasional
         if ($start < self::JAM_BUKA || $end > self::JAM_TUTUP) {
             return response()->json([
@@ -81,7 +90,7 @@ class BookingApiController extends Controller
             ], 422);
         }
 
-        // Validasi batas booking per hari
+        // Validasi batas booking per hari — hanya hitung yang masih approved
         $bookingHariIni = Booking::where('user_id', $request->user()->id)
             ->where('booking_date', $date)
             ->where('status', 'approved')
@@ -94,7 +103,7 @@ class BookingApiController extends Controller
             ], 422);
         }
 
-        // Cek konflik jadwal
+        // Cek konflik jadwal — expired dan cancelled tidak dihitung sebagai konflik
         $conflict = Booking::where('desk_id', $validated['desk_id'])
             ->where('booking_date', $date)
             ->where('status', 'approved')
@@ -141,8 +150,9 @@ class BookingApiController extends Controller
             return response()->json(['success' => false, 'message' => 'Booking tidak ditemukan.'], 404);
         }
 
-        if ($booking->status === 'cancelled') {
-            return response()->json(['success' => false, 'message' => 'Booking sudah dibatalkan.'], 422);
+        if (in_array($booking->status, ['cancelled', 'expired'])) {
+            $label = $booking->status === 'expired' ? 'sudah expired (sesi berakhir)' : 'sudah dibatalkan';
+            return response()->json(['success' => false, 'message' => "Booking {$label}."], 422);
         }
 
         $booking->update(['status' => 'cancelled']);

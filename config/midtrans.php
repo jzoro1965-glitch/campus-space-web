@@ -27,4 +27,9 @@ return [
     'finish_url'  => env('APP_URL') . '/mahasiswa/mentors/bookings',
     'error_url'   => env('APP_URL') . '/mahasiswa/mentors/bookings',
     'pending_url' => env('APP_URL') . '/mahasiswa/mentors/bookings',
+
+    // Booking mentor yang masih 'pending' (belum dibayar) lebih lama dari
+    // sekian menit akan otomatis di-expire oleh command mentor-bookings:expire,
+    // dan slot jadwalnya dibebaskan kembali supaya tidak terkunci selamanya.
+    'pending_expiry_minutes' => env('MENTOR_BOOKING_EXPIRY_MINUTES', 60),
 ];

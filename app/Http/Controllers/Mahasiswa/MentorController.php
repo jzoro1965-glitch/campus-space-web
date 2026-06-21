@@ -8,6 +8,7 @@ use App\Models\MentorBooking;
 use App\Models\MentorSchedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Midtrans\Config as MidtransConfig;
 use Midtrans\Snap;
 
@@ -82,55 +83,67 @@ class MentorController extends Controller
             'notes'              => ['nullable', 'string', 'max:500'],
         ]);
 
-        $schedule = MentorSchedule::find($request->mentor_schedule_id);
+        $user = Auth::user();
 
-        // Validasi: jadwal milik mentor ini
-        if ($schedule->mentor_id !== $mentor->id) {
-            return back()->with('error', 'Jadwal tidak valid.');
+        // ── Bagian kritis: lock baris jadwal supaya request yang barengan
+        //    (dua mahasiswa klik booking di slot yang sama nyaris bersamaan)
+        //    harus antre, bukan dua-duanya lolos validasi is_booked. ───────
+        try {
+            [$booking, $schedule] = DB::transaction(function () use ($request, $mentor, $user) {
+                $schedule = MentorSchedule::where('id', $request->mentor_schedule_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $schedule || $schedule->mentor_id !== $mentor->id) {
+                    throw new \RuntimeException('Jadwal tidak valid.');
+                }
+
+                if ($schedule->is_booked) {
+                    throw new \RuntimeException('Jadwal ini sudah dibooking oleh orang lain. Pilih jadwal lain.');
+                }
+
+                if ($schedule->date->lt(now()->toDateString())) {
+                    throw new \RuntimeException('Jadwal ini sudah lewat.');
+                }
+
+                $alreadyBooked = MentorBooking::where('user_id', $user->id)
+                    ->where('mentor_schedule_id', $schedule->id)
+                    ->whereIn('status', ['pending', 'paid'])
+                    ->exists();
+
+                if ($alreadyBooked) {
+                    throw new \RuntimeException('Anda sudah memiliki booking untuk jadwal ini.');
+                }
+
+                $orderId = 'CS-MB-' . $user->id . '-' . time();
+
+                // status tidak di-set di sini — kolom DB sudah default 'pending'
+                $booking = MentorBooking::create([
+                    'user_id'            => $user->id,
+                    'mentor_id'          => $mentor->id,
+                    'mentor_schedule_id' => $schedule->id,
+                    'order_id'           => $orderId,
+                    'amount'             => $mentor->price_per_session,
+                    'notes'              => $request->notes,
+                ]);
+
+                // Lock slot sementara — masih dalam transaction yang sama,
+                // baris schedule ini sudah ke-lock dari lockForUpdate() di atas
+                $schedule->update(['is_booked' => true]);
+
+                return [$booking, $schedule];
+            });
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
         }
 
-        // Validasi: belum di-booking orang lain
-        if ($schedule->is_booked) {
-            return back()->with('error', 'Jadwal ini sudah dibooking oleh orang lain. Pilih jadwal lain.');
-        }
-
-        // Validasi: tanggal belum lewat
-        if ($schedule->date->lt(now()->toDateString())) {
-            return back()->with('error', 'Jadwal ini sudah lewat.');
-        }
-
-        // Cek mahasiswa tidak double-booking mentor yang sama di slot yang sama
-        $alreadyBooked = MentorBooking::where('user_id', Auth::id())
-            ->where('mentor_schedule_id', $schedule->id)
-            ->whereIn('status', ['pending', 'paid'])
-            ->exists();
-
-        if ($alreadyBooked) {
-            return back()->with('error', 'Anda sudah memiliki booking untuk jadwal ini.');
-        }
-
-        $user    = Auth::user();
-        $orderId = 'CS-MB-' . $user->id . '-' . time();
-
-        // Buat booking record dengan status pending
-        $booking = MentorBooking::create([
-            'user_id'             => $user->id,
-            'mentor_id'           => $mentor->id,
-            'mentor_schedule_id'  => $schedule->id,
-            'order_id'            => $orderId,
-            'amount'              => $mentor->price_per_session,
-            'status'              => 'pending',
-            'notes'               => $request->notes,
-        ]);
-
-        // Lock slot sementara (akan dibebaskan kalau payment gagal/expire via webhook)
-        $schedule->update(['is_booked' => true]);
-
-        // Request Snap Token ke Midtrans
+        // ── Request Snap Token ke Midtrans — sengaja DI LUAR transaction.
+        //    Memanggil API eksternal sambil menahan row lock database itu
+        //    riskan (lock ketahan lama kalau Midtrans lambat respons). ─────
         $params = [
             'transaction_details' => [
-                'order_id'     => $orderId,
-                'gross_amount' => $mentor->price_per_session,
+                'order_id'     => $booking->order_id,
+                'gross_amount' => $booking->amount,
             ],
             'customer_details' => [
                 'first_name' => $user->name,
@@ -153,7 +166,8 @@ class MentorController extends Controller
 
             return view('mahasiswa.mentors.checkout', compact('booking', 'mentor', 'schedule', 'snapToken'));
         } catch (\Exception $e) {
-            // Rollback: batalkan booking dan bebaskan slot
+            // Rollback manual: transaction sebelumnya sudah commit duluan,
+            // jadi pembatalan booking + pembebasan slot dilakukan manual di sini.
             $booking->delete();
             $schedule->update(['is_booked' => false]);
             return back()->with('error', 'Gagal terhubung ke payment gateway. Coba lagi. (' . $e->getMessage() . ')');
@@ -199,7 +213,8 @@ class MentorController extends Controller
             return back()->with('error', 'Hanya booking yang belum dibayar yang bisa dibatalkan sendiri. Hubungi admin untuk pembatalan setelah pembayaran.');
         }
 
-        $booking->update(['status' => 'cancelled']);
+        $booking->status = 'cancelled';
+        $booking->save();
         $booking->schedule()->update(['is_booked' => false]);
 
         return back()->with('success', 'Booking berhasil dibatalkan. Jadwal kembali tersedia.');

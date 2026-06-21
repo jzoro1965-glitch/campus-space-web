@@ -7,6 +7,7 @@ use App\Models\Mentor;
 use App\Models\MentorBooking;
 use App\Models\MentorSchedule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Midtrans\Config as MidtransConfig;
 use Midtrans\Snap;
 
@@ -84,49 +85,65 @@ class MentorApiController extends Controller
             'notes'              => ['nullable', 'string', 'max:500'],
         ]);
 
-        $schedule = MentorSchedule::with('mentor')->find($request->mentor_schedule_id);
-        $mentor   = $schedule->mentor;
+        $user = $request->user();
 
-        if (! $mentor->is_active) {
-            return response()->json(['success' => false, 'message' => 'Mentor tidak aktif.'], 422);
+        // ── Bagian kritis: lock baris jadwal supaya request yang barengan
+        //    tidak bisa dua-duanya lolos validasi is_booked. ────────────────
+        try {
+            [$booking, $schedule, $mentor] = DB::transaction(function () use ($request, $user) {
+                $schedule = MentorSchedule::with('mentor')
+                    ->where('id', $request->mentor_schedule_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                $mentor = $schedule?->mentor;
+
+                if (! $mentor || ! $mentor->is_active) {
+                    throw new \RuntimeException('Mentor tidak aktif.');
+                }
+
+                if ($schedule->is_booked) {
+                    throw new \RuntimeException('Jadwal sudah dibooking orang lain.');
+                }
+
+                if ($schedule->date->lt(now()->toDateString())) {
+                    throw new \RuntimeException('Jadwal sudah lewat.');
+                }
+
+                $alreadyBooked = MentorBooking::where('user_id', $user->id)
+                    ->where('mentor_schedule_id', $schedule->id)
+                    ->whereIn('status', ['pending', 'paid'])
+                    ->exists();
+
+                if ($alreadyBooked) {
+                    throw new \RuntimeException('Anda sudah booking jadwal ini.');
+                }
+
+                $orderId = 'CS-MB-' . $user->id . '-' . time();
+
+                // status tidak di-set di sini — kolom DB sudah default 'pending'
+                $booking = MentorBooking::create([
+                    'user_id'            => $user->id,
+                    'mentor_id'          => $mentor->id,
+                    'mentor_schedule_id' => $schedule->id,
+                    'order_id'           => $orderId,
+                    'amount'             => $mentor->price_per_session,
+                    'notes'              => $request->notes,
+                ]);
+
+                $schedule->update(['is_booked' => true]);
+
+                return [$booking, $schedule, $mentor];
+            });
+        } catch (\RuntimeException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         }
 
-        if ($schedule->is_booked) {
-            return response()->json(['success' => false, 'message' => 'Jadwal sudah dibooking orang lain.'], 422);
-        }
-
-        if ($schedule->date->lt(now()->toDateString())) {
-            return response()->json(['success' => false, 'message' => 'Jadwal sudah lewat.'], 422);
-        }
-
-        $alreadyBooked = MentorBooking::where('user_id', $request->user()->id)
-            ->where('mentor_schedule_id', $schedule->id)
-            ->whereIn('status', ['pending', 'paid'])
-            ->exists();
-
-        if ($alreadyBooked) {
-            return response()->json(['success' => false, 'message' => 'Anda sudah booking jadwal ini.'], 422);
-        }
-
-        $user    = $request->user();
-        $orderId = 'CS-MB-' . $user->id . '-' . time();
-
-        $booking = MentorBooking::create([
-            'user_id'            => $user->id,
-            'mentor_id'          => $mentor->id,
-            'mentor_schedule_id' => $schedule->id,
-            'order_id'           => $orderId,
-            'amount'             => $mentor->price_per_session,
-            'status'             => 'pending',
-            'notes'              => $request->notes,
-        ]);
-
-        $schedule->update(['is_booked' => true]);
-
+        // ── Request Snap Token ke Midtrans — di luar transaction ───────────
         $params = [
             'transaction_details' => [
-                'order_id'     => $orderId,
-                'gross_amount' => $mentor->price_per_session,
+                'order_id'     => $booking->order_id,
+                'gross_amount' => $booking->amount,
             ],
             'customer_details' => [
                 'first_name' => $user->name,
@@ -149,7 +166,7 @@ class MentorApiController extends Controller
                 'message' => 'Booking berhasil dibuat. Selesaikan pembayaran.',
                 'data'    => [
                     'booking_id'  => $booking->id,
-                    'order_id'    => $orderId,
+                    'order_id'    => $booking->order_id,
                     'amount'      => $mentor->price_per_session,
                     'snap_token'  => $snapToken,
                     'snap_url'    => 'https://app.' . (config('midtrans.is_production') ? '' : 'sandbox.') . 'midtrans.com/snap/v2/vtweb/' . $snapToken,
@@ -215,7 +232,8 @@ class MentorApiController extends Controller
             ], 422);
         }
 
-        $booking->update(['status' => 'cancelled']);
+        $booking->status = 'cancelled';
+        $booking->save();
         $booking->schedule()->update(['is_booked' => false]);
 
         return response()->json(['success' => true, 'message' => 'Booking berhasil dibatalkan.']);

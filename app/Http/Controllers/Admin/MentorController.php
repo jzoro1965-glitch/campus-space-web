@@ -188,7 +188,8 @@ class MentorController extends Controller
             return back()->with('error', 'Booking tidak bisa dibatalkan.');
         }
 
-        $booking->update(['status' => 'cancelled']);
+        $booking->status = 'cancelled';
+        $booking->save();
         // Bebaskan slot jadwal kembali
         $booking->schedule()->update(['is_booked' => false]);
 
@@ -200,7 +201,8 @@ class MentorController extends Controller
         if ($booking->status !== 'paid') {
             return back()->with('error', 'Hanya booking dengan status "paid" yang bisa diselesaikan.');
         }
-        $booking->update(['status' => 'completed']);
+        $booking->status = 'completed';
+        $booking->save();
         return back()->with('success', "Booking #{$booking->order_id} ditandai selesai.");
     }
 }

@@ -29,3 +29,12 @@ Schedule::command('bookings:expire --grace=30')
     ->withoutOverlapping()   // skip jika run sebelumnya belum selesai
     ->runInBackground()      // tidak block proses lain
     ->appendOutputTo(storage_path('logs/expire-bookings.log'));
+
+// Expire booking MENTOR (berbayar) yang masih "pending" terlalu lama
+// (belum sempat dibayar via Midtrans), lalu bebaskan slot jadwalnya.
+// Default toleransi 60 menit, bisa diubah lewat MENTOR_BOOKING_EXPIRY_MINUTES di .env
+Schedule::command('mentor-bookings:expire')
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->appendOutputTo(storage_path('logs/expire-mentor-bookings.log'));

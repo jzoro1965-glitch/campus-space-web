@@ -6,9 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class MentorBooking extends Model
 {
+    /**
+     * 'status' SENGAJA tidak dimasukkan ke $fillable.
+     * Perubahan status booking (pending → paid/failed/expired/cancelled/completed)
+     * hanya boleh terjadi lewat kode server (webhook Midtrans, admin action, command
+     * expire) dengan set property langsung: $booking->status = 'xxx'; $booking->save();
+     * Ini mencegah status ter-override lewat mass-assignment kalau suatu saat ada
+     * controller baru yang ceroboh melakukan create()/update() dari input user.
+     */
     protected $fillable = [
         'user_id', 'mentor_id', 'mentor_schedule_id',
-        'order_id', 'amount', 'status', 'notes',
+        'order_id', 'amount', 'notes',
         'payment_type', 'midtrans_transaction_id',
         'snap_token', 'midtrans_response', 'paid_at',
     ];

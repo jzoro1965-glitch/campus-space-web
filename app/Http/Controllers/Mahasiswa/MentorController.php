@@ -143,7 +143,7 @@ class MentorController extends Controller
                 'name'     => 'Sesi Mentoring: ' . $mentor->name . ' (' . $schedule->date->format('d M Y') . ' ' . substr($schedule->start_time, 0, 5) . ')',
             ]],
             'callbacks' => [
-                'finish' => route('mahasiswa.mentors.booking.show', $booking),
+                'finish' => route('mahasiswa.mentors.my-bookings'),
             ],
         ];
 

@@ -73,12 +73,30 @@
 
     <script src="{{ config('midtrans.snap_url') }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
     <script>
-        document.getElementById('pay-button').addEventListener('click', function () {
-            snap.pay('{{ $snapToken }}', {
-                onSuccess: () => { window.location.href = '{{ route('mahasiswa.mentors.booking.show', $booking) }}'; },
-                onPending: () => { window.location.href = '{{ route('mahasiswa.mentors.booking.show', $booking) }}'; },
-                onError:   () => { alert('Pembayaran gagal. Silakan coba lagi.'); },
-                onClose:   () => { window.location.href = '{{ route('mahasiswa.mentors.my-bookings') }}'; }
+        // Tunggu sampai snap library benar-benar loaded
+        window.addEventListener('load', function () {
+            var btn = document.getElementById('pay-button');
+            if (!btn) return;
+
+            btn.addEventListener('click', function () {
+                if (typeof snap === 'undefined') {
+                    alert('Payment gateway sedang loading, coba lagi dalam beberapa detik.');
+                    return;
+                }
+                snap.pay('{{ $snapToken }}', {
+                    onSuccess: function(result) {
+                        window.location.href = '{{ route('mahasiswa.mentors.my-bookings') }}';
+                    },
+                    onPending: function(result) {
+                        window.location.href = '{{ route('mahasiswa.mentors.my-bookings') }}';
+                    },
+                    onError: function(result) {
+                        alert('Pembayaran gagal: ' + (result.status_message || 'Silakan coba lagi.'));
+                    },
+                    onClose: function() {
+                        // User tutup popup tanpa bayar — tetap di halaman ini
+                    }
+                });
             });
         });
     </script>

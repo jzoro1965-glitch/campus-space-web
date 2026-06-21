@@ -72,10 +72,10 @@ Route::prefix('mahasiswa')->name('mahasiswa.')->middleware(['auth', 'role:mahasi
     // ── Mentor (berbayar) ────────────────────────────────────────────────
     Route::get('/mentors',                              [MahasiswaMentorController::class, 'index'])->name('mentors.index');
     Route::get('/mentors/bookings',                     [MahasiswaMentorController::class, 'myBookings'])->name('mentors.my-bookings');
-    Route::get('/mentors/{mentor}',                     [MahasiswaMentorController::class, 'show'])->name('mentors.show');
-    Route::post('/mentors/{mentor}/book',               [MahasiswaMentorController::class, 'book'])->name('mentors.book');
     Route::get('/mentors/bookings/{booking}',           [MahasiswaMentorController::class, 'showBooking'])->name('mentors.booking.show');
     Route::delete('/mentors/bookings/{booking}/cancel', [MahasiswaMentorController::class, 'cancelBooking'])->name('mentors.booking.cancel');
+    Route::get('/mentors/{mentor}',                     [MahasiswaMentorController::class, 'show'])->name('mentors.show');
+    Route::post('/mentors/{mentor}/book',               [MahasiswaMentorController::class, 'book'])->name('mentors.book');
 });
 
 // ── MIDTRANS WEBHOOK — no CSRF ─────────────────────────────────────────

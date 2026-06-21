@@ -19,10 +19,12 @@ return [
     'is_production'=> env('MIDTRANS_IS_PRODUCTION', false),
     'snap_url'     => env('MIDTRANS_SNAP_URL', 'https://app.sandbox.midtrans.com/snap/snap.js'),
 
-    // URL yang dipanggil Midtrans setelah payment selesai/gagal
-    // Harus bisa diakses dari internet (gunakan ngrok saat development)
+    // Webhook dari Midtrans — harus bisa diakses dari internet
+    // Untuk lokal: pakai ngrok → MIDTRANS_NOTIFICATION_URL=https://xxxx.ngrok.io/payment/notification
     'notification_url' => env('MIDTRANS_NOTIFICATION_URL', env('APP_URL') . '/payment/notification'),
-    'finish_url'       => env('APP_URL') . '/mahasiswa/payments',
-    'error_url'        => env('APP_URL') . '/mahasiswa/payments',
-    'pending_url'      => env('APP_URL') . '/mahasiswa/payments',
+
+    // Redirect setelah popup Midtrans ditutup (finish/error/pending)
+    'finish_url'  => env('APP_URL') . '/mahasiswa/mentors/bookings',
+    'error_url'   => env('APP_URL') . '/mahasiswa/mentors/bookings',
+    'pending_url' => env('APP_URL') . '/mahasiswa/mentors/bookings',
 ];

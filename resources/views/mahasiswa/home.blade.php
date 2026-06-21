@@ -23,46 +23,6 @@
     <div class="space-y-6" x-data="bookingForm()">
 
         {{-- ──────────────────────────────────────────────────── --}}
-        {{-- BANNER KUOTA PAKET                                  --}}
-        {{-- ──────────────────────────────────────────────────── --}}
-        @if($activePayment)
-            <div class="flex items-center justify-between flex-wrap gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
-                        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-bold text-emerald-800">{{ $activePayment->plan->name }} — Aktif</p>
-                        <p class="text-xs text-emerald-600 mt-0.5">
-                            <span class="font-black text-emerald-700">{{ $activePayment->quota_remaining }}</span> booking tersisa
-                            · berlaku s/d <strong>{{ $activePayment->active_until->format('d M Y') }}</strong>
-                        </p>
-                    </div>
-                </div>
-                <a href="{{ route('mahasiswa.payments.index') }}"
-                   class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 underline">
-                    Kelola Paket →
-                </a>
-            </div>
-        @else
-            <div class="flex items-center justify-between flex-wrap gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
-                        <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-bold text-amber-800">Anda belum memiliki paket aktif</p>
-                        <p class="text-xs text-amber-600 mt-0.5">Beli paket terlebih dahulu untuk bisa melakukan booking</p>
-                    </div>
-                </div>
-                <a href="{{ route('mahasiswa.payments.index') }}"
-                   class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition-colors">
-                    Beli Paket Sekarang
-                </a>
-            </div>
-        @endif
-
-        {{-- ──────────────────────────────────────────────────── --}}
         {{-- PANEL ATURAN BOOKING                                --}}
         {{-- ──────────────────────────────────────────────────── --}}
         <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4">            <div class="flex items-start gap-3">

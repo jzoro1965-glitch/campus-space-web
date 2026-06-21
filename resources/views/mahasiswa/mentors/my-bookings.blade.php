@@ -84,10 +84,14 @@
         <script src="{{ config('midtrans.snap_url') }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
         <script>
             function payNow(token) {
+                if (typeof snap === 'undefined') {
+                    alert('Payment gateway sedang loading, coba lagi dalam beberapa detik.');
+                    return;
+                }
                 snap.pay(token, {
-                    onSuccess: () => location.reload(),
-                    onPending: () => location.reload(),
-                    onError:   () => alert('Pembayaran gagal.'),
+                    onSuccess: function() { location.reload(); },
+                    onPending: function() { location.reload(); },
+                    onError:   function(r) { alert('Pembayaran gagal: ' + (r.status_message || 'Coba lagi.')); },
                 });
             }
         </script>

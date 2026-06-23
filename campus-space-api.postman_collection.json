@@ -1,0 +1,370 @@
+{
+  "info": {
+    "name": "Campus Space API",
+    "description": "REST API Collection untuk Campus Space — Sistem Manajemen Pemesanan Meja Belajar & Booking Sesi Mentor.\n\n**Setup:**\n1. Set variable `base_url` = `http://127.0.0.1:8000/api`\n2. Jalankan request **Login** untuk mendapat token\n3. Copy token dari response, set variable `token`\n4. Semua request protected sudah include `Authorization: Bearer {{token}}`",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string",
+      "description": "Sanctum Bearer Token — diisi setelah login"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.token) {",
+                  "    pm.collectionVariables.set('token', json.token);",
+                  "    console.log('Token saved: ' + json.token.substring(0, 20) + '...');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"leo@student.com\",\n  \"password\": \"password\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/login", "host": ["{{base_url}}"], "path": ["login"] },
+            "description": "Login dan dapatkan Bearer Token. Token otomatis disimpan ke variabel `{{token}}` via test script."
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nim\": \"22010099\",\n  \"name\": \"Mahasiswa Baru\",\n  \"email\": \"baru@student.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/register", "host": ["{{base_url}}"], "path": ["register"] },
+            "description": "Daftar akun baru. Role otomatis 'mahasiswa'."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "" },
+            "url": { "raw": "{{base_url}}/logout", "host": ["{{base_url}}"], "path": ["logout"] },
+            "description": "Hapus token yang sedang aktif."
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/profile", "host": ["{{base_url}}"], "path": ["profile"] },
+            "description": "Ambil data profil user yang sedang login."
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nama Baru\",\n  \"email\": \"emailbaru@student.com\",\n  \"nim\": \"22010001\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/profile", "host": ["{{base_url}}"], "path": ["profile"] },
+            "description": "Update nama, email, NIM. Semua field opsional. Tambah `password` + `password_confirmation` untuk ganti password."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Desks (Meja)",
+      "item": [
+        {
+          "name": "Get All Desks",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/desks?date=2026-06-25",
+              "host": ["{{base_url}}"],
+              "path": ["desks"],
+              "query": [
+                { "key": "date", "value": "2026-06-25", "description": "Format: YYYY-MM-DD. Default: hari ini" }
+              ]
+            },
+            "description": "Daftar semua meja aktif + status ready/booked untuk tanggal tertentu."
+          }
+        },
+        {
+          "name": "Get Available Desks",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/desks/available?date=2026-06-25&start=09:00&end=11:00",
+              "host": ["{{base_url}}"],
+              "path": ["desks", "available"],
+              "query": [
+                { "key": "date", "value": "2026-06-25", "description": "Format: YYYY-MM-DD (wajib)" },
+                { "key": "start", "value": "09:00", "description": "Jam mulai HH:MM (wajib)" },
+                { "key": "end", "value": "11:00", "description": "Jam selesai HH:MM (wajib)" }
+              ]
+            },
+            "description": "Meja yang masih tersedia untuk rentang waktu spesifik."
+          }
+        },
+        {
+          "name": "Get Desk Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/desks/1?date=2026-06-25",
+              "host": ["{{base_url}}"],
+              "path": ["desks", "1"],
+              "query": [
+                { "key": "date", "value": "2026-06-25", "description": "Format: YYYY-MM-DD. Default: hari ini" }
+              ]
+            },
+            "description": "Detail satu meja + semua slot waktu yang sudah ter-booking pada tanggal tertentu."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Desk Bookings (Gratis)",
+      "item": [
+        {
+          "name": "Get My Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bookings",
+              "host": ["{{base_url}}"],
+              "path": ["bookings"]
+            },
+            "description": "Riwayat semua booking meja milik user yang sedang login, diurutkan dari terbaru."
+          }
+        },
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"desk_id\": 1,\n  \"booking_date\": \"2026-06-26\",\n  \"start_time\": \"09:00\",\n  \"end_time\": \"11:00\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/bookings",
+              "host": ["{{base_url}}"],
+              "path": ["bookings"]
+            },
+            "description": "Buat booking meja baru. Validasi bisnis:\n- Jam operasional 07:00–21:00\n- Maksimal 3 jam per sesi\n- Maksimal 1 booking aktif per hari\n- Tidak bisa booking tanggal masa lalu\n- Conflict detection otomatis"
+          }
+        },
+        {
+          "name": "Get Booking Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bookings/1",
+              "host": ["{{base_url}}"],
+              "path": ["bookings", "1"]
+            },
+            "description": "Detail satu booking. Hanya bisa akses booking milik sendiri."
+          }
+        },
+        {
+          "name": "Cancel Booking",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bookings/1",
+              "host": ["{{base_url}}"],
+              "path": ["bookings", "1"]
+            },
+            "description": "Batalkan booking meja. Hanya bisa batalkan milik sendiri yang statusnya bukan cancelled/expired."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Mentors",
+      "item": [
+        {
+          "name": "Get All Mentors",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/mentors?search=&expertise=",
+              "host": ["{{base_url}}"],
+              "path": ["mentors"],
+              "query": [
+                { "key": "search", "value": "", "description": "Cari berdasarkan nama atau keahlian (opsional)" },
+                { "key": "expertise", "value": "", "description": "Filter berdasarkan bidang keahlian (opsional)" }
+              ]
+            },
+            "description": "Daftar semua mentor aktif. Mendukung filter search dan expertise."
+          }
+        },
+        {
+          "name": "Get Mentor Detail + Jadwal",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/mentors/1",
+              "host": ["{{base_url}}"],
+              "path": ["mentors", "1"]
+            },
+            "description": "Detail profil satu mentor beserta daftar jadwal yang masih tersedia (is_booked=false, tanggal >= hari ini)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Mentor Bookings (Berbayar)",
+      "item": [
+        {
+          "name": "Get My Mentor Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/mentor-bookings",
+              "host": ["{{base_url}}"],
+              "path": ["mentor-bookings"]
+            },
+            "description": "Riwayat semua booking mentor milik user yang sedang login."
+          }
+        },
+        {
+          "name": "Create Mentor Booking (Get Snap Token)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mentor_schedule_id\": 1,\n  \"notes\": \"Mau belajar materi integral dan turunan untuk ujian minggu depan.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/mentor-bookings",
+              "host": ["{{base_url}}"],
+              "path": ["mentor-bookings"]
+            },
+            "description": "Buat booking sesi mentor. Response berisi `snap_token` dan `snap_url` untuk membuka halaman pembayaran Midtrans.\n\nAlur:\n1. POST ke endpoint ini → dapat snap_token\n2. Buka snap_url di browser/WebView untuk bayar\n3. Midtrans callback ke /payment/notification\n4. Status booking berubah dari 'pending' ke 'paid'\n\nValidasi:\n- Jadwal harus belum di-booking (is_booked=false)\n- Tanggal jadwal harus >= hari ini\n- Tidak bisa booking jadwal yang sama dua kali"
+          }
+        },
+        {
+          "name": "Get Mentor Booking Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/mentor-bookings/1",
+              "host": ["{{base_url}}"],
+              "path": ["mentor-bookings", "1"]
+            },
+            "description": "Detail satu booking mentor. Berisi info mentor, jadwal, status payment, snap_token, dan paid_at."
+          }
+        },
+        {
+          "name": "Cancel Mentor Booking",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/mentor-bookings/1",
+              "host": ["{{base_url}}"],
+              "path": ["mentor-bookings", "1"]
+            },
+            "description": "Batalkan booking mentor. Hanya bisa batalkan booking dengan status 'pending' (belum dibayar). Slot jadwal otomatis dibebaskan kembali."
+          }
+        }
+      ]
+    }
+  ]
+}

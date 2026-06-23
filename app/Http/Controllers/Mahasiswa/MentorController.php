@@ -217,6 +217,7 @@ class MentorController extends Controller
         $booking->save();
         $booking->schedule()->update(['is_booked' => false]);
 
-        return back()->with('success', 'Booking berhasil dibatalkan. Jadwal kembali tersedia.');
+        return redirect()->route('mahasiswa.mentors.show', $booking->mentor_id)
+            ->with('success', 'Booking berhasil dibatalkan. Jadwal kembali tersedia.');
     }
 }

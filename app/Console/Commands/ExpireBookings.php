@@ -2,80 +2,66 @@
 
 namespace App\Console\Commands;
 
-use App\Models\MentorBooking;
+use App\Models\Booking;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
-class ExpireMentorBookings extends Command
+class ExpireBookings extends Command
 {
-    /**
-     * Nama command yang dipanggil via artisan.
-     * Contoh: php artisan mentor-bookings:expire
-     */
-    protected $signature = 'mentor-bookings:expire
-                            {--minutes= : Override menit toleransi sebelum booking pending di-expire (default: config midtrans.pending_expiry_minutes)}
+    protected $signature = 'bookings:expire
+                            {--grace=30 : Menit toleransi setelah end_time sebelum booking di-expire}
                             {--dry-run  : Tampilkan daftar booking yang akan di-expire tanpa benar-benar mengubah data}';
 
-    protected $description = 'Otomatis ubah status booking mentor menjadi "expired" jika masih pending (belum dibayar) melewati batas waktu, lalu bebaskan slot jadwalnya kembali.';
+    protected $description = 'Otomatis mengubah status booking menjadi expired jika sesi sudah lewat dari waktu selesai (+ grace period).';
 
     public function handle(): int
     {
-        $minutes  = (int) ($this->option('minutes') ?? config('midtrans.pending_expiry_minutes', 60));
-        $isDryRun = $this->option('dry-run');
-        $cutoff   = Carbon::now()->subMinutes($minutes);
+        $graceMinutes = (int) $this->option('grace');
+        $isDryRun     = $this->option('dry-run');
+        $now          = Carbon::now();
 
-        // Ambil semua booking mentor yang masih pending dan sudah dibuat
-        // lebih lama dari batas toleransi (default 60 menit).
-        $expired = MentorBooking::with(['schedule', 'user', 'mentor'])
-            ->where('status', 'pending')
-            ->where('created_at', '<', $cutoff)
+        $expired = Booking::where('status', 'approved')
+            ->where(function ($query) use ($now, $graceMinutes) {
+                $query->where('booking_date', '<', $now->toDateString())
+                    ->orWhere(function ($q) use ($now, $graceMinutes) {
+                        $q->where('booking_date', $now->toDateString())
+                          ->whereRaw(
+                              "ADDTIME(booking_date, end_time) < ?",
+                              [$now->copy()->subMinutes($graceMinutes)->format('Y-m-d H:i:s')]
+                          );
+                    });
+            })
+            ->with('desk', 'user')
             ->get();
 
         if ($expired->isEmpty()) {
-            $this->info('[' . Carbon::now()->format('H:i:s') . "] Tidak ada booking mentor pending yang perlu di-expire (>{$minutes} menit).");
+            $this->info('[' . $now->format('H:i:s') . '] Tidak ada booking yang perlu di-expire.');
             return self::SUCCESS;
         }
 
         if ($isDryRun) {
-            $this->warn("[DRY RUN] {$expired->count()} booking mentor akan di-expire:");
+            $this->warn("[DRY RUN] {$expired->count()} booking akan di-expire:");
             $this->table(
-                ['ID', 'Order ID', 'Mahasiswa', 'Mentor', 'Dibuat'],
+                ['ID', 'Mahasiswa', 'Meja', 'Tanggal', 'Jam Selesai'],
                 $expired->map(fn ($b) => [
                     $b->id,
-                    $b->order_id,
                     $b->user->name ?? '—',
-                    $b->mentor->name ?? '—',
-                    $b->created_at,
+                    $b->desk->code ?? '—',
+                    $b->booking_date,
+                    substr($b->end_time, 0, 5),
                 ])->toArray()
             );
             return self::SUCCESS;
         }
 
-        // Diproses satu per satu (bukan update massal) karena kita juga
-        // perlu membebaskan slot jadwal terkait tiap booking.
-        foreach ($expired as $booking) {
-            $booking->status = 'expired';
-            $booking->save();
-
-            if ($booking->schedule) {
-                $booking->schedule->update(['is_booked' => false]);
-            }
-        }
+        $ids = $expired->pluck('id');
+        Booking::whereIn('id', $ids)->update(['status' => 'expired']);
 
         $this->info(
-            '[' . Carbon::now()->format('H:i:s') . '] ' .
-            $expired->count() . ' booking mentor di-expire ' .
-            "(pending >{$minutes} menit), slot dibebaskan kembali."
+            '[' . $now->format('H:i:s') . '] ' .
+            $expired->count() . ' booking di-expire ' .
+            "(grace period: {$graceMinutes} menit)."
         );
-
-        if ($this->getOutput()->isVerbose()) {
-            $this->table(
-                ['ID', 'Order ID', 'Mahasiswa', 'Mentor'],
-                $expired->map(fn ($b) => [
-                    $b->id, $b->order_id, $b->user->name ?? '—', $b->mentor->name ?? '—',
-                ])->toArray()
-            );
-        }
 
         return self::SUCCESS;
     }
